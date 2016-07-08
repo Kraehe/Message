@@ -4,12 +4,18 @@ class MessengersController < ApplicationController
   # GET /messengers
   # GET /messengers.json
   def index
+    @messenger = Messenger.new
     @messengers = Messenger.all
   end
 
   # GET /messengers/1
   # GET /messengers/1.json
   def show
+    @messenger.destroy
+    respond_to do |format|
+      format.html { redirect_to messengers_url, notice: 'Your message has been sent.' }
+      format.json { head :no_content }
+    end
   end
 
   # GET /messengers/new
@@ -18,7 +24,8 @@ class MessengersController < ApplicationController
   end
 
   # GET /messengers/1/edit
-  def edit
+  def send_message
+
   end
 
   # POST /messengers
@@ -28,8 +35,16 @@ class MessengersController < ApplicationController
 
     respond_to do |format|
       if @messenger.save
+        @client = Twilio::REST::Client.new
+        @client.messages.create(
+          from: '+19293252653',
+          to: '+1' + @messenger.phone,
+          body: @messenger.message
+          )
+
         format.html { redirect_to @messenger, notice: 'Messenger was successfully created.' }
         format.json { render :show, status: :created, location: @messenger }
+
       else
         format.html { render :new }
         format.json { render json: @messenger.errors, status: :unprocessable_entity }
